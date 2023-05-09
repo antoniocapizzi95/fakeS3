@@ -1,0 +1,16 @@
+version: '3.8'
+services:
+  app:
+    build:
+      context: .
+    volumes:
+      - ".:/go/src"
+    container_name: fakeS3
+    command: bash -c "go install github.com/githubnemo/CompileDaemon && CompileDaemon -build='go build -o fakeS3 ./cmd/server' -command="./fakeS3""
+    tty: true
+    ports:
+      - "8080:8080"
+  mongodb:
+    image: mongo
+    ports:
+      - "27017:27017"
