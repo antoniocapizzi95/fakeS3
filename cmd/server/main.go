@@ -19,7 +19,7 @@ func main() {
 	// if I change the database, I only have to change the following row
 	bucketHandler := mongo.GetBucketHandlerMongo(db.Collection("bucket"))
 	// S3 configuration
-	s3Service := s3.New(bucketHandler)
+	s3Service := s3.New(bucketHandler, conf)
 
 	// Endpoint to create a Bucket
 	app.Put("/:bucket", s3Service.CreateBucket)

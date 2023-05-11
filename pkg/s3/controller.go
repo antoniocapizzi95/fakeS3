@@ -3,9 +3,11 @@ package s3
 import (
 	"encoding/xml"
 	"fmt"
+	"github.com/antoniocapizzi95/fakeS3/config"
 	"github.com/antoniocapizzi95/fakeS3/utils"
 	"github.com/gofiber/fiber/v2"
 	"math/rand"
+	"os"
 	"strconv"
 	"strings"
 	"time"
@@ -20,12 +22,14 @@ type S3Service interface {
 // s3Service is the implementation of S3Service interface
 type s3Service struct {
 	bucketHandler BucketHandler
+	conf          config.Config
 }
 
 // New this return a new S3Service object
-func New(bucketHandler BucketHandler) S3Service {
+func New(bucketHandler BucketHandler, conf config.Config) S3Service {
 	return &s3Service{
 		bucketHandler: bucketHandler,
+		conf:          conf,
 	}
 }
 
@@ -50,6 +54,11 @@ func (s *s3Service) PutObject(c *fiber.Ctx) error {
 	}
 	if bucket == nil {
 		return fmt.Errorf("bucket with name %s not found", bucketName)
+	}
+
+	err = writeFile(s.conf.StoragePath, bucketName, key, c.Body())
+	if err != nil {
+		return err
 	}
 	bucket.Objects = appendOrUpdateObject(bucket.Objects, object)
 	err = s.bucketHandler.UpdateBucket(ctx, *bucket)
@@ -133,4 +142,13 @@ func buildListOutput(bucketName string, maxKeys int, prefix string, marker strin
 		Contents:    objects,
 		IsTruncated: false,
 	}
+}
+
+func writeFile(basePath string, bucketName string, key string, file []byte) error {
+	path := fmt.Sprintf("%s/%s/%s", basePath, bucketName, key)
+	err := os.WriteFile(path, file, 0644)
+	if err != nil {
+		return fmt.Errorf("error writing file: %s", err)
+	}
+	return nil
 }
