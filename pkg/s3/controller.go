@@ -36,13 +36,13 @@ func (s *s3Service) CreateBucket(c *fiber.Ctx) error {
 	if err != nil {
 		return err
 	}
-	return c.SendStatus(200)
+	return c.Status(200).Type("application/xml").SendString("")
 }
 
 func (s *s3Service) PutObject(c *fiber.Ctx) error {
 	bucketName := c.Params("bucket")
+	key := c.Params("+")
 	ctx := c.Context()
-	key := c.Params("key")
 	object := buildNewObject(key)
 	bucket, err := s.bucketHandler.GetBucket(ctx, bucketName)
 	if err != nil {
@@ -57,7 +57,7 @@ func (s *s3Service) PutObject(c *fiber.Ctx) error {
 		return err
 	}
 	c.Set("ETag", object.ETag)
-	return c.SendStatus(200)
+	return c.Status(200).Type("application/xml").SendString("")
 }
 
 func (s *s3Service) ListObjects(c *fiber.Ctx) error {

@@ -25,7 +25,7 @@ func main() {
 	app.Put("/:bucket", s3Service.CreateBucket)
 
 	// Endpoint to add an object inside a Bucket
-	app.Put("/:bucket/:key", s3Service.PutObject)
+	app.Put("/:bucket/+", s3Service.PutObject)
 
 	// Endpoint to list objects inside a Bucket
 	app.Get("/:bucket", s3Service.ListObjects)
