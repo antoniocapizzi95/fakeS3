@@ -30,6 +30,9 @@ func main() {
 	// Endpoint to list objects inside a Bucket
 	app.Get("/:bucket", s3Service.ListObjects)
 
+	// Endpoint to get an object
+	app.Get("/:bucket/+", s3Service.GetObject)
+
 	if err := app.Listen(fmt.Sprintf(":%s", conf.Port)); err != nil {
 		log.Fatalf("Error during server running: %v\n", err)
 	}

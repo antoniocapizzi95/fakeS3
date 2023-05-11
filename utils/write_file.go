@@ -7,7 +7,7 @@ import (
 )
 
 func WriteFile(basePath string, bucketName string, key string, file []byte) error {
-	entirePath := fmt.Sprintf("%s/%s/%s", basePath, bucketName, key)
+	entirePath := GetEntirePath(basePath, bucketName, key)
 	dirPath := getDirPath(entirePath)
 	err := createDirectoriesFromPath(dirPath)
 	if err != nil {

@@ -17,7 +17,7 @@ type Object struct {
 	ETag         string    `bson:"etag" xml:"ETag"`
 	CreationDate time.Time `bson:"creation_date"`
 	LastModified time.Time `bson:"last_modified" xml:"LastModified"`
-	Size         uint64    `bson:"size" xml:"Size"`
+	Size         int       `bson:"size" xml:"Size"`
 }
 
 type BucketHandler interface {

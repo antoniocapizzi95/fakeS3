@@ -6,7 +6,6 @@ import (
 	"github.com/antoniocapizzi95/fakeS3/config"
 	"github.com/antoniocapizzi95/fakeS3/utils"
 	"github.com/gofiber/fiber/v2"
-	"math/rand"
 	"strconv"
 	"strings"
 	"time"
@@ -16,6 +15,7 @@ type S3Service interface {
 	CreateBucket(c *fiber.Ctx) error
 	PutObject(c *fiber.Ctx) error
 	ListObjects(c *fiber.Ctx) error
+	GetObject(c *fiber.Ctx) error
 }
 
 // s3Service is the implementation of S3Service interface
@@ -46,7 +46,8 @@ func (s *s3Service) PutObject(c *fiber.Ctx) error {
 	bucketName := c.Params("bucket")
 	key := c.Params("+")
 	ctx := c.Context()
-	object := buildNewObject(key)
+	file := c.Body()
+	object := buildNewObject(key, file)
 	bucket, err := s.bucketHandler.GetBucket(ctx, bucketName)
 	if err != nil {
 		return err
@@ -55,7 +56,7 @@ func (s *s3Service) PutObject(c *fiber.Ctx) error {
 		return fmt.Errorf("bucket with name %s not found", bucketName)
 	}
 
-	err = utils.WriteFile(s.conf.StoragePath, bucketName, key, c.Body())
+	err = utils.WriteFile(s.conf.StoragePath, bucketName, key, file)
 	if err != nil {
 		return err
 	}
@@ -94,6 +95,23 @@ func (s *s3Service) ListObjects(c *fiber.Ctx) error {
 	return c.Status(fiber.StatusOK).Type("application/xml").SendString(xmlString)
 }
 
+func (s *s3Service) GetObject(c *fiber.Ctx) error {
+	bucketName := c.Params("bucket")
+	key := c.Params("+")
+	path := utils.GetEntirePath(s.conf.StoragePath, bucketName, key)
+	bucket, err := s.bucketHandler.GetBucket(c.Context(), bucketName)
+	if err != nil {
+		return err
+	}
+
+	object := getObject(*bucket, key)
+	if object == nil {
+		return fmt.Errorf("object not found")
+	}
+
+	return c.SendFile(path)
+}
+
 func buildNewBucket(bucketName string) Bucket {
 	return Bucket{
 		Name:         bucketName,
@@ -101,13 +119,13 @@ func buildNewBucket(bucketName string) Bucket {
 	}
 }
 
-func buildNewObject(key string) Object {
+func buildNewObject(key string, file []byte) Object {
 	return Object{
 		Key:          key,
 		CreationDate: time.Now(),
 		LastModified: time.Now(),
-		Size:         rand.Uint64() % 1000,
-		ETag:         utils.GenerateRandomString(32),
+		Size:         len(file),
+		ETag:         utils.CalculateHash(file),
 	}
 }
 
@@ -141,4 +159,13 @@ func buildListOutput(bucketName string, maxKeys int, prefix string, marker strin
 		Contents:    objects,
 		IsTruncated: false,
 	}
+}
+
+func getObject(bucket Bucket, key string) *Object {
+	for _, obj := range bucket.Objects {
+		if obj.Key == key {
+			return &obj
+		}
+	}
+	return nil
 }
