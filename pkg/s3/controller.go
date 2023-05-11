@@ -7,7 +7,6 @@ import (
 	"github.com/antoniocapizzi95/fakeS3/utils"
 	"github.com/gofiber/fiber/v2"
 	"math/rand"
-	"os"
 	"strconv"
 	"strings"
 	"time"
@@ -56,7 +55,7 @@ func (s *s3Service) PutObject(c *fiber.Ctx) error {
 		return fmt.Errorf("bucket with name %s not found", bucketName)
 	}
 
-	err = writeFile(s.conf.StoragePath, bucketName, key, c.Body())
+	err = utils.WriteFile(s.conf.StoragePath, bucketName, key, c.Body())
 	if err != nil {
 		return err
 	}
@@ -142,13 +141,4 @@ func buildListOutput(bucketName string, maxKeys int, prefix string, marker strin
 		Contents:    objects,
 		IsTruncated: false,
 	}
-}
-
-func writeFile(basePath string, bucketName string, key string, file []byte) error {
-	path := fmt.Sprintf("%s/%s/%s", basePath, bucketName, key)
-	err := os.WriteFile(path, file, 0644)
-	if err != nil {
-		return fmt.Errorf("error writing file: %s", err)
-	}
-	return nil
 }
