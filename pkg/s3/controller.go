@@ -98,7 +98,7 @@ func buildNewObject(key string) Object {
 		Key:          key,
 		CreationDate: time.Now(),
 		LastModified: time.Now(),
-		Size:         rand.Uint64(),
+		Size:         rand.Uint64() % 1000,
 		ETag:         utils.GenerateRandomString(32),
 	}
 }
