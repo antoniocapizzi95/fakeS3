@@ -97,6 +97,7 @@ func (s *s3Service) ListObjects(c *fiber.Ctx) error {
 
 func (s *s3Service) GetObject(c *fiber.Ctx) error {
 	bucketName := c.Params("bucket")
+	rangeParam := c.Get("Range")
 	key := c.Params("+")
 	path := utils.GetEntirePath(s.conf.StoragePath, bucketName, key)
 	bucket, err := s.bucketHandler.GetBucket(c.Context(), bucketName)
@@ -109,6 +110,20 @@ func (s *s3Service) GetObject(c *fiber.Ctx) error {
 		return fmt.Errorf("object not found")
 	}
 	c.Set("ETag", object.ETag)
+
+	// handle range
+	if rangeParam != "" {
+		start, end, err := utils.ExtractByteRanges(rangeParam)
+		if err != nil {
+			return err
+		}
+		partialFile, err := utils.ReadFileRange(path, start, end)
+		if err != nil {
+			return err
+		}
+		return c.Send(partialFile)
+	}
+
 	return c.SendFile(path)
 }
 
