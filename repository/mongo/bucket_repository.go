@@ -3,7 +3,7 @@ package mongo
 import (
 	"context"
 	"fmt"
-	"github.com/antoniocapizzi95/fakeS3/pkg/s3"
+	"github.com/antoniocapizzi95/fakeS3/models"
 	"github.com/antoniocapizzi95/fakeS3/repository"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
@@ -14,7 +14,7 @@ type BucketRepositoryMongo struct {
 	collection *mongo.Collection
 }
 
-func (b *BucketRepositoryMongo) CreateBucket(ctx context.Context, bucket s3.Bucket) error {
+func (b *BucketRepositoryMongo) CreateBucket(ctx context.Context, bucket models.Bucket) error {
 	// add if bucket don't exists (using name as unique identifier)
 	res, err := b.collection.UpdateOne(
 		ctx,
@@ -30,7 +30,7 @@ func (b *BucketRepositoryMongo) CreateBucket(ctx context.Context, bucket s3.Buck
 	return nil
 }
 
-func (b *BucketRepositoryMongo) UpdateBucket(ctx context.Context, bucket s3.Bucket) error {
+func (b *BucketRepositoryMongo) UpdateBucket(ctx context.Context, bucket models.Bucket) error {
 	result, err := b.collection.UpdateOne(ctx, bson.M{"name": bucket.Name}, bson.M{"$set": bucket})
 	if err != nil {
 		return err
@@ -41,8 +41,8 @@ func (b *BucketRepositoryMongo) UpdateBucket(ctx context.Context, bucket s3.Buck
 	return nil
 }
 
-func (b *BucketRepositoryMongo) GetBucket(ctx context.Context, bucketName string) (*s3.Bucket, error) {
-	var bucket s3.Bucket
+func (b *BucketRepositoryMongo) GetBucket(ctx context.Context, bucketName string) (*models.Bucket, error) {
+	var bucket models.Bucket
 	err := b.collection.FindOne(ctx, bson.M{"name": bucketName}).Decode(&bucket)
 	if err != nil {
 		return nil, err

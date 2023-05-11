@@ -4,6 +4,7 @@ import (
 	"encoding/xml"
 	"fmt"
 	"github.com/antoniocapizzi95/fakeS3/config"
+	"github.com/antoniocapizzi95/fakeS3/models"
 	"github.com/antoniocapizzi95/fakeS3/repository"
 	"github.com/antoniocapizzi95/fakeS3/utils"
 	"github.com/gofiber/fiber/v2"
@@ -129,15 +130,15 @@ func (s *s3Service) GetObject(c *fiber.Ctx) error {
 	return c.SendFile(path)
 }
 
-func buildNewBucket(bucketName string) Bucket {
-	return Bucket{
+func buildNewBucket(bucketName string) models.Bucket {
+	return models.Bucket{
 		Name:         bucketName,
 		CreationDate: time.Now(),
 	}
 }
 
-func buildNewObject(key string, file []byte) Object {
-	return Object{
+func buildNewObject(key string, file []byte) models.Object {
+	return models.Object{
 		Key:          key,
 		CreationDate: time.Now(),
 		LastModified: time.Now(),
@@ -146,7 +147,7 @@ func buildNewObject(key string, file []byte) Object {
 	}
 }
 
-func appendOrUpdateObject(objects []Object, newObj Object) []Object {
+func appendOrUpdateObject(objects []models.Object, newObj models.Object) []models.Object {
 	for i, o := range objects {
 		if o.Key == newObj.Key {
 			newObj.CreationDate = o.CreationDate
@@ -157,8 +158,8 @@ func appendOrUpdateObject(objects []Object, newObj Object) []Object {
 	return append(objects, newObj)
 }
 
-func filterObjectsByPrefix(objects []Object, prefix string) []Object {
-	var result []Object
+func filterObjectsByPrefix(objects []models.Object, prefix string) []models.Object {
+	var result []models.Object
 	for _, obj := range objects {
 		if strings.HasPrefix(obj.Key, prefix) {
 			result = append(result, obj)
@@ -167,8 +168,8 @@ func filterObjectsByPrefix(objects []Object, prefix string) []Object {
 	return result
 }
 
-func buildListOutput(bucketName string, maxKeys int, prefix string, marker string, objects []Object) ListObjectsOutput {
-	return ListObjectsOutput{
+func buildListOutput(bucketName string, maxKeys int, prefix string, marker string, objects []models.Object) models.ListObjectsOutput {
+	return models.ListObjectsOutput{
 		Name:        bucketName,
 		Prefix:      prefix,
 		MaxKeys:     maxKeys,
@@ -178,7 +179,7 @@ func buildListOutput(bucketName string, maxKeys int, prefix string, marker strin
 	}
 }
 
-func getObject(bucket Bucket, key string) *Object {
+func getObject(bucket models.Bucket, key string) *models.Object {
 	for _, obj := range bucket.Objects {
 		if obj.Key == key {
 			return &obj
