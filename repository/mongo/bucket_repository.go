@@ -29,28 +29,18 @@ func (b *BucketHandlerMongo) CreateBucket(ctx context.Context, bucket s3.Bucket)
 	return nil
 }
 
-func (b *BucketHandlerMongo) AddObject(ctx context.Context, bucketName string, object s3.Object) error {
-	bucket, err := b.getBucket(ctx, bucketName)
+func (b *BucketHandlerMongo) UpdateBucket(ctx context.Context, bucket s3.Bucket) error {
+	result, err := b.collection.UpdateOne(ctx, bson.M{"name": bucket.Name}, bson.M{"$set": bucket})
 	if err != nil {
 		return err
 	}
-	if bucket == nil {
-		return fmt.Errorf("not found bucket with name %s", bucketName)
-	}
-	bucket.Objects = append(bucket.Objects, object)
-	_, err = b.collection.UpdateOne(ctx, bson.M{"name": bucketName}, bson.M{"objects": bucket.Objects})
-	if err != nil {
-		return err
+	if result.ModifiedCount == 0 {
+		return fmt.Errorf("the bucket %s doesn't exists", bucket.Name)
 	}
 	return nil
 }
 
-func (b *BucketHandlerMongo) GetObjects(ctx context.Context, bucketName string, max uint, prefix string, marker string) ([]s3.Object, error) {
-
-	return nil, nil
-}
-
-func (b *BucketHandlerMongo) getBucket(ctx context.Context, bucketName string) (*s3.Bucket, error) {
+func (b *BucketHandlerMongo) GetBucket(ctx context.Context, bucketName string) (*s3.Bucket, error) {
 	var bucket s3.Bucket
 	err := b.collection.FindOne(ctx, bson.M{"name": bucketName}).Decode(&bucket)
 	if err != nil {

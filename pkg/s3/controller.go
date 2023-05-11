@@ -1,9 +1,13 @@
 package s3
 
 import (
+	"encoding/xml"
 	"fmt"
+	"github.com/antoniocapizzi95/fakeS3/utils"
 	"github.com/gofiber/fiber/v2"
 	"math/rand"
+	"strconv"
+	"strings"
 	"time"
 )
 
@@ -32,23 +36,54 @@ func (s *s3Service) CreateBucket(c *fiber.Ctx) error {
 	if err != nil {
 		return err
 	}
-	return c.SendString(fmt.Sprintf("Bucket %s successful created!", bucketName))
+	return c.SendStatus(200)
 }
 
 func (s *s3Service) PutObject(c *fiber.Ctx) error {
 	bucketName := c.Params("bucket")
+	ctx := c.Context()
 	key := c.Params("key")
 	object := buildNewObject(key)
-	s.bucketHandler.AddObject(c.Context(), bucketName, object)
-	return c.SendString(fmt.Sprintf("Object %s added in Bucket %s with success!", key, bucketName))
+	bucket, err := s.bucketHandler.GetBucket(ctx, bucketName)
+	if err != nil {
+		return err
+	}
+	if bucket == nil {
+		return fmt.Errorf("bucket with name %s not found", bucketName)
+	}
+	bucket.Objects = appendOrUpdateObject(bucket.Objects, object)
+	err = s.bucketHandler.UpdateBucket(ctx, *bucket)
+	if err != nil {
+		return err
+	}
+	c.Set("ETag", object.ETag)
+	return c.SendStatus(200)
 }
 
 func (s *s3Service) ListObjects(c *fiber.Ctx) error {
-	bucket := c.Params("bucket")
-	maxKeys := c.Query("max-keys")
+	bucketName := c.Params("bucket")
+	maxKeys, _ := strconv.Atoi(c.Query("max-keys"))
 	prefix := c.Query("prefix")
 	marker := c.Query("marker")
-	return c.SendString(fmt.Sprintf("List objects of Buket %s with maxKeys=%s, prefix=%s, marker=%s", bucket, maxKeys, prefix, marker))
+	bucket, err := s.bucketHandler.GetBucket(c.Context(), bucketName)
+	if err != nil {
+		return err
+	}
+	if bucket == nil {
+		return fmt.Errorf("bucket with name %s not found", bucketName)
+	}
+
+	objects := bucket.Objects
+	if prefix != "" {
+		objects = filterObjectsByPrefix(objects, prefix)
+	}
+	output := buildListOutput(bucketName, int(maxKeys), prefix, marker, objects)
+	xmlBytes, err := xml.Marshal(output)
+	if err != nil {
+		return fmt.Errorf("error marshaling to XML: %v", err)
+	}
+	xmlString := string(xmlBytes)
+	return c.Status(fiber.StatusOK).Type("application/xml").SendString(xmlString)
 }
 
 func buildNewBucket(bucketName string) Bucket {
@@ -64,5 +99,38 @@ func buildNewObject(key string) Object {
 		CreationDate: time.Now(),
 		LastModified: time.Now(),
 		Size:         rand.Uint64(),
+		ETag:         utils.GenerateRandomString(32),
+	}
+}
+
+func appendOrUpdateObject(objects []Object, newObj Object) []Object {
+	for i, o := range objects {
+		if o.Key == newObj.Key {
+			newObj.CreationDate = o.CreationDate
+			objects[i] = newObj
+			return objects
+		}
+	}
+	return append(objects, newObj)
+}
+
+func filterObjectsByPrefix(objects []Object, prefix string) []Object {
+	var result []Object
+	for _, obj := range objects {
+		if strings.HasPrefix(obj.Key, prefix) {
+			result = append(result, obj)
+		}
+	}
+	return result
+}
+
+func buildListOutput(bucketName string, maxKeys int, prefix string, marker string, objects []Object) ListObjectsOutput {
+	return ListObjectsOutput{
+		Name:        bucketName,
+		Prefix:      prefix,
+		MaxKeys:     maxKeys,
+		Marker:      marker,
+		Contents:    objects,
+		IsTruncated: false,
 	}
 }

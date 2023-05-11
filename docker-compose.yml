@@ -6,7 +6,7 @@ services:
     volumes:
       - ".:/go/src"
     container_name: fakeS3
-    command: bash -c "go install github.com/githubnemo/CompileDaemon && CompileDaemon -build='go build -o fakeS3 ./cmd/server' -command="./fakeS3""
+    command: bash -c "go mod download && go install github.com/githubnemo/CompileDaemon && CompileDaemon -build='go build -o fakeS3 ./cmd/server' -command="./fakeS3""
     tty: true
     ports:
       - "8080:8080"
