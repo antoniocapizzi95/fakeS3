@@ -108,7 +108,7 @@ func (s *s3Service) GetObject(c *fiber.Ctx) error {
 	if object == nil {
 		return fmt.Errorf("object not found")
 	}
-
+	c.Set("ETag", object.ETag)
 	return c.SendFile(path)
 }
 
