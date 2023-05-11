@@ -99,6 +99,7 @@ func (s *s3Service) GetObject(c *fiber.Ctx) error {
 	bucketName := c.Params("bucket")
 	rangeParam := c.Get("Range")
 	key := c.Params("+")
+
 	path := utils.GetEntirePath(s.conf.StoragePath, bucketName, key)
 	bucket, err := s.bucketHandler.GetBucket(c.Context(), bucketName)
 	if err != nil {
