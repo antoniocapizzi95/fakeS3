@@ -4,6 +4,7 @@ import (
 	"encoding/xml"
 	"fmt"
 	"github.com/antoniocapizzi95/fakeS3/config"
+	"github.com/antoniocapizzi95/fakeS3/repository"
 	"github.com/antoniocapizzi95/fakeS3/utils"
 	"github.com/gofiber/fiber/v2"
 	"strconv"
@@ -20,22 +21,22 @@ type S3Service interface {
 
 // s3Service is the implementation of S3Service interface
 type s3Service struct {
-	bucketHandler BucketHandler
-	conf          config.Config
+	bucketRepository repository.BucketRepository
+	conf             config.Config
 }
 
 // New this return a new S3Service object
-func New(bucketHandler BucketHandler, conf config.Config) S3Service {
+func New(bucketRepository repository.BucketRepository, conf config.Config) S3Service {
 	return &s3Service{
-		bucketHandler: bucketHandler,
-		conf:          conf,
+		bucketRepository: bucketRepository,
+		conf:             conf,
 	}
 }
 
 func (s *s3Service) CreateBucket(c *fiber.Ctx) error {
 	bucketName := c.Params("bucket")
 	bucket := buildNewBucket(bucketName)
-	err := s.bucketHandler.CreateBucket(c.Context(), bucket)
+	err := s.bucketRepository.CreateBucket(c.Context(), bucket)
 	if err != nil {
 		return err
 	}
@@ -48,7 +49,7 @@ func (s *s3Service) PutObject(c *fiber.Ctx) error {
 	ctx := c.Context()
 	file := c.Body()
 	object := buildNewObject(key, file)
-	bucket, err := s.bucketHandler.GetBucket(ctx, bucketName)
+	bucket, err := s.bucketRepository.GetBucket(ctx, bucketName)
 	if err != nil {
 		return err
 	}
@@ -61,7 +62,7 @@ func (s *s3Service) PutObject(c *fiber.Ctx) error {
 		return err
 	}
 	bucket.Objects = appendOrUpdateObject(bucket.Objects, object)
-	err = s.bucketHandler.UpdateBucket(ctx, *bucket)
+	err = s.bucketRepository.UpdateBucket(ctx, *bucket)
 	if err != nil {
 		return err
 	}
@@ -74,7 +75,7 @@ func (s *s3Service) ListObjects(c *fiber.Ctx) error {
 	maxKeys, _ := strconv.Atoi(c.Query("max-keys"))
 	prefix := c.Query("prefix")
 	marker := c.Query("marker")
-	bucket, err := s.bucketHandler.GetBucket(c.Context(), bucketName)
+	bucket, err := s.bucketRepository.GetBucket(c.Context(), bucketName)
 	if err != nil {
 		return err
 	}
@@ -101,7 +102,7 @@ func (s *s3Service) GetObject(c *fiber.Ctx) error {
 	key := c.Params("+")
 
 	path := utils.GetEntirePath(s.conf.StoragePath, bucketName, key)
-	bucket, err := s.bucketHandler.GetBucket(c.Context(), bucketName)
+	bucket, err := s.bucketRepository.GetBucket(c.Context(), bucketName)
 	if err != nil {
 		return err
 	}

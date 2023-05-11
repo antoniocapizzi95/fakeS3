@@ -17,9 +17,9 @@ func main() {
 	app := fiber.New()
 
 	// if I change the database, I only have to change the following row
-	bucketHandler := mongo.GetBucketHandlerMongo(db.Collection("bucket"))
+	bucketRepository := mongo.GetBucketRepositoryMongo(db)
 	// S3 configuration
-	s3Service := s3.New(bucketHandler, conf)
+	s3Service := s3.New(bucketRepository, conf)
 
 	// Endpoint to create a Bucket
 	app.Put("/:bucket", s3Service.CreateBucket)

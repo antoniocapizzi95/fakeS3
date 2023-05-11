@@ -1,8 +1,6 @@
 package s3
 
 import (
-	"context"
-	"encoding/xml"
 	"time"
 )
 
@@ -20,14 +18,7 @@ type Object struct {
 	Size         int       `bson:"size" xml:"Size"`
 }
 
-type BucketHandler interface {
-	GetBucket(ctx context.Context, bucketName string) (*Bucket, error)
-	CreateBucket(ctx context.Context, bucket Bucket) error
-	UpdateBucket(ctx context.Context, bucket Bucket) error
-}
-
 type ListObjectsOutput struct {
-	XMLName     xml.Name `xml:"ListBucketResult"`
 	Name        string   `xml:"Name"`
 	Prefix      string   `xml:"Prefix"`
 	Marker      string   `xml:"Marker"`
