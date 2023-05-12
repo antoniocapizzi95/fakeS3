@@ -11,6 +11,7 @@ To install the project, follow these instructions:
 2. Go to the project root directory `cd projectname`
 3. Create a new `.env` file by copying the `.env.sample` file with command `cp .env.sample .env`
 4. Run the project with Docker using command `docker-compose up`
+5. With running project on Docker, it's possible to execute unit tests using this command `docker exec fakeS3 go test ./...`
 
 
 ## Exposed endpoints
@@ -152,3 +153,12 @@ Or with Range:
     --bucket <bucket-name> \
     --key <key>  \
     --range <range "bytes=start-end"> <path-to-save-file-locally>
+
+## Some implementation details
+Considering that this project makes use of a no-sql DBMS (specifically MongoDB which is document-oriented), in order to avoid having to make joins in queries, the database structure has been "denormalized," in fact for each Bucket only one document is saved that has an array of Objects inside it (with a relational database it would have been necessary to have two separate tables).
+
+In the main function of the project the Bucket repository implemented for Mongo is injected inside the requests controller, so if in the future the DBMS should change, just reimplement the repository interface and inject the new repository into the controller. It is important to note that inside the controller the use of Mongo rather than another DBMS is completely transparent.
+
+A rigid folder structure was not followed to organize the project files, in Go there are different schools of thought, in this case an organized but simplified structure was used.
+
+Finally, some unit tests were added only on the most logical functions that do not require mocking of dependencies.
