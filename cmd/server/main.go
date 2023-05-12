@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"github.com/antoniocapizzi95/fakeS3/config"
 	"github.com/antoniocapizzi95/fakeS3/database"
-	"github.com/antoniocapizzi95/fakeS3/pkg/s3"
+	"github.com/antoniocapizzi95/fakeS3/modules/s3"
 	"github.com/antoniocapizzi95/fakeS3/repository/mongo"
 	"github.com/gofiber/fiber/v2"
 	"log"
@@ -19,19 +19,19 @@ func main() {
 	// if I change the database, I only have to change the following row
 	bucketRepository := mongo.NewBucketRepositoryMongo(db)
 	// S3 configuration
-	s3Service := s3.New(bucketRepository, conf)
+	s3Controller := s3.New(bucketRepository, conf)
 
 	// Endpoint to create a Bucket
-	app.Put("/:bucket", s3Service.CreateBucket)
+	app.Put("/:bucket", s3Controller.CreateBucket)
 
 	// Endpoint to add an object inside a Bucket
-	app.Put("/:bucket/+", s3Service.PutObject)
+	app.Put("/:bucket/+", s3Controller.PutObject)
 
 	// Endpoint to list objects inside a Bucket
-	app.Get("/:bucket", s3Service.ListObjects)
+	app.Get("/:bucket", s3Controller.ListObjects)
 
 	// Endpoint to get an object
-	app.Get("/:bucket/+", s3Service.GetObject)
+	app.Get("/:bucket/+", s3Controller.GetObject)
 
 	if err := app.Listen(fmt.Sprintf(":%s", conf.Port)); err != nil {
 		log.Fatalf("Error during server running: %v\n", err)

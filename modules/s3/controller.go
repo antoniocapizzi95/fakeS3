@@ -13,28 +13,28 @@ import (
 	"time"
 )
 
-type S3Service interface {
+type S3Controller interface {
 	CreateBucket(c *fiber.Ctx) error
 	PutObject(c *fiber.Ctx) error
 	ListObjects(c *fiber.Ctx) error
 	GetObject(c *fiber.Ctx) error
 }
 
-// s3Service is the implementation of S3Service interface
-type s3Service struct {
+// s3Controller is the implementation of s3Controller interface
+type s3Controller struct {
 	bucketRepository repository.BucketRepository
 	conf             config.Config
 }
 
-// New this return a new S3Service object
-func New(bucketRepository repository.BucketRepository, conf config.Config) S3Service {
-	return &s3Service{
+// New this return a new s3Controller object
+func New(bucketRepository repository.BucketRepository, conf config.Config) S3Controller {
+	return &s3Controller{
 		bucketRepository: bucketRepository,
 		conf:             conf,
 	}
 }
 
-func (s *s3Service) CreateBucket(c *fiber.Ctx) error {
+func (s *s3Controller) CreateBucket(c *fiber.Ctx) error {
 	bucketName := c.Params("bucket")
 	bucket := buildNewBucket(bucketName)
 	err := s.bucketRepository.CreateBucket(c.Context(), bucket)
@@ -44,7 +44,7 @@ func (s *s3Service) CreateBucket(c *fiber.Ctx) error {
 	return c.Status(fiber.StatusOK).Type("application/xml").SendString("")
 }
 
-func (s *s3Service) PutObject(c *fiber.Ctx) error {
+func (s *s3Controller) PutObject(c *fiber.Ctx) error {
 	bucketName := c.Params("bucket")
 	key := c.Params("+")
 	ctx := c.Context()
@@ -71,7 +71,7 @@ func (s *s3Service) PutObject(c *fiber.Ctx) error {
 	return c.Status(fiber.StatusOK).Type("application/xml").SendString("")
 }
 
-func (s *s3Service) ListObjects(c *fiber.Ctx) error {
+func (s *s3Controller) ListObjects(c *fiber.Ctx) error {
 	bucketName := c.Params("bucket")
 	maxKeys, _ := strconv.Atoi(c.Query("max-keys"))
 	prefix := c.Query("prefix")
@@ -97,7 +97,7 @@ func (s *s3Service) ListObjects(c *fiber.Ctx) error {
 	return c.Status(fiber.StatusOK).Type("application/xml").SendString(xmlString)
 }
 
-func (s *s3Service) GetObject(c *fiber.Ctx) error {
+func (s *s3Controller) GetObject(c *fiber.Ctx) error {
 	bucketName := c.Params("bucket")
 	rangeParam := c.Get("Range")
 	key := c.Params("+")
