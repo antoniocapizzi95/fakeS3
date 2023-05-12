@@ -61,6 +61,27 @@ Output:
 
 If successful, the HTTP response code should be 200 OK. The body of the response should contain a list of objects within the bucket, it's formatted in XML, like the one below:
 
+    <ListObjectsOutput>
+        <Name>testBucket</Name>
+        <Prefix></Prefix>
+        <Marker></Marker>
+        <MaxKeys>0</MaxKeys>
+        <IsTruncated>false</IsTruncated>
+        <Contents>
+            <Key>folder/image.png</Key>
+            <ETag>d41d8cd98f00b204e9800998ecf8427e</ETag>
+            <CreationDate>2023-05-12T09:57:51.397Z</CreationDate>
+            <LastModified>2023-05-12T09:57:51.397Z</LastModified>
+            <Size>204</Size>
+        </Contents>
+        <Contents>
+            <Key>folder/image2.png</Key>
+            <ETag>d41d8cd98f00b204e9800998ecf8427e</ETag>
+            <CreationDate>2023-05-12T09:58:00.927Z</CreationDate>
+            <LastModified>2023-05-12T09:58:10.383Z</LastModified>
+            <Size>315</Size>
+        </Contents>
+    </ListObjectsOutput>
 
 ### Get an Object
 Endpoint:
@@ -93,7 +114,7 @@ When the application is running, it can also be used with the AWS CLI, following
     --no-sign-request \
     --endpoint-url http://localhost:8080 \
     put-object \
-    --bucket cubbit-bucket \
+    --bucket <bucket-name> \
     --key <key> \
     --body <path of the file to upload>
 

@@ -41,7 +41,7 @@ func (s *s3Service) CreateBucket(c *fiber.Ctx) error {
 	if err != nil {
 		return err
 	}
-	return c.Status(200).Type("application/xml").SendString("")
+	return c.Status(fiber.StatusOK).Type("application/xml").SendString("")
 }
 
 func (s *s3Service) PutObject(c *fiber.Ctx) error {
@@ -68,7 +68,7 @@ func (s *s3Service) PutObject(c *fiber.Ctx) error {
 		return err
 	}
 	c.Set("ETag", object.ETag)
-	return c.Status(200).Type("application/xml").SendString("")
+	return c.Status(fiber.StatusOK).Type("application/xml").SendString("")
 }
 
 func (s *s3Service) ListObjects(c *fiber.Ctx) error {
@@ -88,7 +88,7 @@ func (s *s3Service) ListObjects(c *fiber.Ctx) error {
 	if prefix != "" {
 		objects = filterObjectsByPrefix(objects, prefix)
 	}
-	output := buildListOutput(bucketName, int(maxKeys), prefix, marker, objects)
+	output := buildListOutput(bucketName, maxKeys, prefix, marker, objects)
 	xmlBytes, err := xml.Marshal(output)
 	if err != nil {
 		return fmt.Errorf("error marshaling to XML: %v", err)
