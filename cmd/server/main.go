@@ -17,7 +17,7 @@ func main() {
 	app := fiber.New()
 
 	// if I change the database, I only have to change the following row
-	bucketRepository := mongo.GetBucketRepositoryMongo(db)
+	bucketRepository := mongo.NewBucketRepositoryMongo(db)
 	// S3 configuration
 	s3Service := s3.New(bucketRepository, conf)
 

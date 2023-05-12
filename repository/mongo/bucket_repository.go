@@ -50,6 +50,6 @@ func (b *BucketRepositoryMongo) GetBucket(ctx context.Context, bucketName string
 	return &bucket, nil
 }
 
-func GetBucketRepositoryMongo(db *mongo.Database) repository.BucketRepository {
+func NewBucketRepositoryMongo(db *mongo.Database) repository.BucketRepository {
 	return &BucketRepositoryMongo{collection: db.Collection("bucket")}
 }
