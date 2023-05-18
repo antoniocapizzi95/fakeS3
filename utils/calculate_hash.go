@@ -2,12 +2,19 @@ package utils
 
 import (
 	"crypto/md5"
-	"encoding/hex"
+	"fmt"
+	"io"
+	"log"
+	"os"
 )
 
-func CalculateHash(bytes []byte) string {
-	hasher := md5.New()
-	hasher.Write(bytes)
-	hash := hex.EncodeToString(hasher.Sum(nil))
-	return hash[:32]
+func CalculateHash(file *os.File) string {
+
+	hash := md5.New()
+	if _, err := io.Copy(hash, file); err != nil {
+		log.Fatal(err)
+	}
+
+	hashInString := fmt.Sprintf("%x", hash.Sum(nil))
+	return hashInString[:32]
 }

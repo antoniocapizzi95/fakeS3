@@ -48,19 +48,20 @@ func (s *s3Controller) PutObject(c *fiber.Ctx) error {
 	bucketName := c.Params("bucket")
 	key := c.Params("+")
 	ctx := c.Context()
-	file := c.Body()
-	object := buildNewObject(key, file)
+	file := c.Context().RequestBodyStream()
+	bodyLength := c.Request().Header.ContentLength()
+
+	etag, err := utils.WriteFile(s.conf.StoragePath, bucketName, key, file)
+	if err != nil {
+		return err
+	}
+	object := buildNewObject(key, etag, bodyLength)
 	bucket, err := s.bucketRepository.GetBucket(ctx, bucketName)
 	if err != nil {
 		return err
 	}
 	if bucket == nil {
 		return fmt.Errorf("bucket with name %s not found", bucketName)
-	}
-
-	err = utils.WriteFile(s.conf.StoragePath, bucketName, key, file)
-	if err != nil {
-		return err
 	}
 	bucket.Objects = appendOrUpdateObject(bucket.Objects, object)
 	err = s.bucketRepository.UpdateBucket(ctx, *bucket)
@@ -137,13 +138,13 @@ func buildNewBucket(bucketName string) models.Bucket {
 	}
 }
 
-func buildNewObject(key string, file []byte) models.Object {
+func buildNewObject(key string, etag string, bodyLength int) models.Object {
 	return models.Object{
 		Key:          key,
 		CreationDate: time.Now(),
 		LastModified: time.Now(),
-		Size:         len(file),
-		ETag:         utils.CalculateHash(file),
+		Size:         bodyLength,
+		ETag:         etag,
 	}
 }
 

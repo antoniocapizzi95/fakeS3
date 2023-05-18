@@ -1,7 +1,7 @@
 # fakeS3
 
 FakeS3 is a RESTful API project written in Golang using the Fiber framework.
-It replicates some endpoints of AWS S3 API, such as create bucket, put object, list objects, and get object.
+It replicates some endpoints of AWS S3 API, such as create bucket, put object, list objects, and get object (of course, not all features are complete, this is just an experiment).
 It uses MongoDB as database management system and can be run with Docker using docker-compose (MongoDb will be executed togheter with application in a separate container).
 
 ## Installation

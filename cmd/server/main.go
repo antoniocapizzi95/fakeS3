@@ -33,6 +33,8 @@ func main() {
 	// Endpoint to get an object
 	app.Get("/:bucket/+", s3Controller.GetObject)
 
+	app.Server().StreamRequestBody = true
+
 	if err := app.Listen(fmt.Sprintf(":%s", conf.Port)); err != nil {
 		log.Fatalf("Error during server running: %v\n", err)
 	}
